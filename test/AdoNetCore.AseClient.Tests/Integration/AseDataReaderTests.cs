@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using Dapper;
 using NUnit.Framework;
 
 namespace AdoNetCore.AseClient.Tests.Integration
@@ -998,6 +999,176 @@ SELECT 5";
             yield return new TestCaseData("select convert(unsigned tinyint, null)", typeof(byte));
             yield return new TestCaseData("select convert(varbinary, null)", typeof(byte[]));
             yield return new TestCaseData("select convert(varchar, null)", typeof(string));
+        }
+
+        [Test]
+        public void Issue102()
+        {
+            using (var connection = new AseConnection(ConnectionStrings.Pooled))
+            {
+                connection.Open();
+
+                using (var command = connection.CreateCommand())
+                {
+                    command.CommandType = CommandType.Text;
+                    command.CommandText =
+                        @"create or replace procedure issue_102
+
+@NUM_PDV            numeric(9),
+@NUM_FCT            int,
+@COD_TIP_ACAO_FCT   tinyint,
+@COD_INDC_REG_ATU   char(1),
+@COD_SIT_FCT        char(1),
+@COD_TERM_DST       char(8),
+@COD_TIP_EQPM       char(3),
+@IND_TCNL_CMPH      char(1),
+@COD_CNL_DSTR       numeric(2),
+@COD_CEL_DSTR       int,
+@DTH_ASSN_CTR_POS   datetime,
+@VAL_INI_ALGL       numeric(9, 2),
+@COD_INDC_ISN_ALGL  char(1),
+@DTH_FIM_ISN_ALGL   datetime,
+@COD_INDC_ECLM      char(1),
+@COD_EVN_ESPC       char(2),
+@COD_TIP_LGCO       tinyint,
+@COD_VDA_DGTD_POS   char(1),
+@COD_INDC_PRRD      char(1),
+@DTH_LIM_PRRD       datetime,
+@COD_DFR_END        char(1),
+@NOM_END_TERM       char(60),
+@NUM_END_TERM       char(6),
+@NOM_END_CPL_TERM   char(100),
+@NOM_BRR_TERM       char(20),
+@NOM_CID_TERM       char(50),
+@NOM_EST_TERM       char(2),
+@COD_CEP_TERM       char(5),
+@COD_CEP_CPL_TERM   numeric(3),
+@NUM_DDD_TERM       char(4),
+@NUM_TEL_TERM       int,
+@NOM_PES_CTTO       char(50),
+@COD_TERM           char(8),
+@NUM_HDSK_ESTB      int,
+@COD_HRRO_SMNA_INI  numeric(1),
+@COD_HRRO_SMNA_FIM  numeric(1),
+@HOR_INI_FNCN       numeric(4),
+@HOR_FIM_FNCN       numeric(4),
+@DES_OBS_FCT        varchar(255),
+@COD_FBRC_HDW       char(2),
+@COD_FORN_SFTW      char(2),
+@COD_INTG           char(2),
+@COD_TIP_CNXO       int,
+@COD_VERS_SFTW      int,
+@NUM_RNPC           numeric(15),
+@COD_PRPT_TERM      tinyint,
+@QTD_CHCK_OUT       int,
+@COD_INDC_TEM_PNPD  char(1),
+@COD_OPID_ULT_ATLZ  char(8),
+@NUM_ULT_SEQ_FCT    int,
+@NUM_ANT            int,
+@COD_TIP_NMRC       tinyint,
+@TIMESTAMP          varchar(255),
+@NUM_FCT_ORI        int,
+@NUM_PDV_ORI        numeric(9),
+@TIMESTAMP_ORI      varchar(255),
+@COD_INDC_VLDC_ENDR char(1),
+@COD_ACAO_CMC       tinyint,
+@COD_PRRD_NEGC      tinyint,
+@IND_ISN_PGMN       char(1),
+@COD_CNRO           int,
+@IND_SZND           char(1),
+@NUM_FLCO_AMEX      numeric(16),
+@NUM_FLCO_VISA      numeric(16),
+@NUM_FCT_ANT        int         = null ,    -- desv12795
+@COD_ORG_SLC_FCT    tinyint     = 0,
+@IndTermFatrExps    char(1)     = 'N'
+
+AS
+
+   select 0 as cod_err, 'sucesso' as des_err , 0";
+
+                    command.ExecuteNonQuery();
+                    
+                    using (var reader = connection.ExecuteReader("issue_102", new
+                        {
+                        NUM_PDV = 1,
+                        NUM_FCT = 2,
+                        COD_TIP_ACAO_FCT = 3,
+                        COD_INDC_REG_ATU = 'a',
+                        COD_SIT_FCT = 'b',
+                        COD_TERM_DST = 'c',
+                        COD_TIP_EQPM = 'd',
+                        IND_TCNL_CMPH = 'e',
+                        COD_CNL_DSTR  = 4,
+                        COD_CEL_DSTR = 5,
+                        DTH_ASSN_CTR_POS = DateTime.Now,
+                        VAL_INI_ALGL = 6,
+                        COD_INDC_ISN_ALGL = 'f',
+                        DTH_FIM_ISN_ALGL = DateTime.Now,
+                        COD_INDC_ECLM = 'g',
+                        COD_EVN_ESPC = 'h',
+                        COD_TIP_LGCO = 7,
+                        COD_VDA_DGTD_POS = 'i',
+                        COD_INDC_PRRD = 'j',
+                        DTH_LIM_PRRD = DateTime.Now,
+                        COD_DFR_END = 'k',
+                        NOM_END_TERM = 'l',
+                        NUM_END_TERM = 'm',
+                        NOM_END_CPL_TERM = 'n',
+                        NOM_BRR_TERM  = 'o',
+                        NOM_CID_TERM  = 'p',
+                        NOM_EST_TERM  = 'q',
+                        COD_CEP_TERM = 'r',
+                        COD_CEP_CPL_TERM = 8,
+                        NUM_DDD_TERM = 's',
+                        NUM_TEL_TERM = 9,
+                        NOM_PES_CTTO = 't',
+                        COD_TERM = 'u',
+                        NUM_HDSK_ESTB = 10,
+                        COD_HRRO_SMNA_INI = 0,
+                        COD_HRRO_SMNA_FIM = 0,
+                        HOR_INI_FNCN  = 13,
+                        HOR_FIM_FNCN = 14,
+                        DES_OBS_FCT = "General Kenobi?",
+                        COD_FBRC_HDW   = 'v',
+                        COD_FORN_SFTW  = 'w',
+                        COD_INTG = 'x',
+                        COD_TIP_CNXO = 15,
+                        COD_VERS_SFTW = 16,
+                        NUM_RNPC = 17,
+                        COD_PRPT_TERM = 18,
+                        QTD_CHCK_OUT = 19,
+                        COD_INDC_TEM_PNPD = 'y',
+                        COD_OPID_ULT_ATLZ = 'z',
+                        NUM_ULT_SEQ_FCT = 20,
+                        NUM_ANT = 21,
+                        COD_TIP_NMRC = 22,
+                        TIMESTAMP = "Hello there.",
+                        NUM_FCT_ORI = 23,
+                        NUM_PDV_ORI = 24,
+                        TIMESTAMP_ORI = "I have the high ground!",
+                        COD_INDC_VLDC_ENDR = '$',
+                        COD_ACAO_CMC = 25,
+                        COD_PRRD_NEGC = 26,
+                        IND_ISN_PGMN = '!',
+                        COD_CNRO =27,
+                        IND_SZND = '?',
+                        NUM_FLCO_AMEX = 28,
+                        NUM_FLCO_VISA = 29
+                    }, null, null, CommandType.StoredProcedure))
+                    {
+                        while (reader.Read())
+                        {
+                            var codErr = reader.GetInt32(0);
+                            var desErr = reader.GetString(1);
+                            var last = reader.GetInt32(2);
+
+                            Assert.AreEqual(0, codErr);
+                            Assert.AreEqual("sucesso", desErr);
+                            Assert.AreEqual(0, last);
+                        }
+                    }
+                }
+            }
         }
     }
 }
